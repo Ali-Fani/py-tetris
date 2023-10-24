@@ -1,55 +1,92 @@
 from settings import *
 from random import choice
+
+from timer import Timer
+
+
 class Game:
     def __init__(self) -> None:
-        
-        self.surface = pygame.Surface((GAME_WIDTH,GAME_HEIGHT))
+        self.surface = pygame.Surface((GAME_WIDTH, GAME_HEIGHT))
         self.display_surface = pygame.display.get_surface()
-        self.rect = self.surface.get_rect(topleft = (PADDING,PADDING))
+        self.rect = self.surface.get_rect(topleft=(PADDING, PADDING))
 
         self.sprites = pygame.sprite.Group()
 
         self.grid_surface = self.surface.copy()
-        self.grid_surface.fill((0,255,0))
-        self.grid_surface.set_colorkey((0,255,0))
+        self.grid_surface.fill((0, 255, 0))
+        self.grid_surface.set_colorkey((0, 255, 0))
         self.grid_surface.set_alpha(120)
 
-        self.tetromino = Tetromino(choice(list(TETROMINOS.keys())),self.sprites)
+        self.tetromino = Tetromino(choice(list(TETROMINOS.keys())), self.sprites)
+
+        # timer
+        self.timers = {"vertical move": Timer(UPDATE_START_SPEED, True, self.move_down)}
+        self.timers["vertical move"].activate()
+
+    def timer_update(self):
+        for timer in self.timers.values():
+            timer.update()
+
+    def move_down(self):
+        # print("Timer",pygame.time.get_ticks())
+        self.tetromino.move_down()
 
     def draw_grid(self):
         for col in range(1, COLUMNS):
             x = col * CELL_SIZE
-            pygame.draw.line(self.grid_surface,LINE_COLOR,(x,0),(x,self.surface.get_height()),width=1)
+            pygame.draw.line(
+                self.grid_surface,
+                LINE_COLOR,
+                (x, 0),
+                (x, self.surface.get_height()),
+                width=1,
+            )
         for row in range(1, ROWS):
             y = row * CELL_SIZE
-            pygame.draw.line(self.grid_surface,LINE_COLOR,(0,y),(self.surface.get_width(),y),width=1)
-        self.surface.blit(self.grid_surface,(0,0))
-    def run(self):
+            pygame.draw.line(
+                self.grid_surface,
+                LINE_COLOR,
+                (0, y),
+                (self.surface.get_width(), y),
+                width=1,
+            )
+        self.surface.blit(self.grid_surface, (0, 0))
 
+    def run(self):
+        # update
+        self.timer_update()
+        self.sprites.update()
+        # drawing
         self.surface.fill(GRAY)
         self.sprites.draw(self.surface)
 
         self.draw_grid()
-        self.display_surface.blit(self.surface, (PADDING,PADDING))
-        pygame.draw.rect(self.display_surface,LINE_COLOR,self.rect,2,2)
+        self.display_surface.blit(self.surface, (PADDING, PADDING))
+        pygame.draw.rect(self.display_surface, LINE_COLOR, self.rect, 2, 2)
+
 
 class Tetromino:
-    def __init__(self,shape,group) -> None:
-        
-        self.block_positions = TETROMINOS[shape]['shape']
-        self.color = TETROMINOS[shape]['color']
+    def __init__(self, shape, group) -> None:
+        self.block_positions = TETROMINOS[shape]["shape"]
+        self.color = TETROMINOS[shape]["color"]
 
         self.blocks = [Block(group, pos, self.color) for pos in self.block_positions]
+
+    def move_down(self):
+        for block in self.blocks:
+            block.pos.y += 1
+
 
 class Block(pygame.sprite.Sprite):
     def __init__(self, group, pos, color) -> None:
         # general
         super().__init__(group)
-        self.image = pygame.Surface((CELL_SIZE,CELL_SIZE))
+        self.image = pygame.Surface((CELL_SIZE, CELL_SIZE))
         self.image.fill(color)
 
         # position
         self.pos = pygame.Vector2(pos) + BLOCK_OFFSET
-        x = self.pos.x * CELL_SIZE
-        y = self.pos.y * CELL_SIZE
-        self.rect = self.image.get_rect(topleft = (x,y))
+        self.rect = self.image.get_rect(topleft=self.pos * CELL_SIZE)
+
+    def update(self):
+        self.rect.topleft = self.pos * CELL_SIZE
