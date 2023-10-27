@@ -1,6 +1,8 @@
 from settings import *
+
+
 class Timer:
-    def __init__(self, duration, repeated = False, callback = None) -> None:
+    def __init__(self, duration, repeated=False, callback=None) -> None:
         self.repeated = repeated
         self.callback = callback
         self.duration = duration
@@ -8,11 +10,10 @@ class Timer:
         self.start_time = 0
         self.active = False
 
-
     def activate(self):
         self.active = True
         self.start_time = pygame.time.get_ticks()
-    
+
     def deactivate(self):
         self.active = False
         self.start_time = 0
@@ -20,7 +21,6 @@ class Timer:
     def update(self):
         current_time = pygame.time.get_ticks()
         if current_time - self.start_time >= self.duration and self.activate:
-
             if self.callback and self.start_time != 0:
                 self.callback()
 
