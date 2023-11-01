@@ -10,6 +10,7 @@ from settings import (
     LINE_COLOR,
     MOVE_WAIT_TIME,
     PADDING,
+    ROTATE_WAIT_TIME,
     ROWS,
     TETROMINOS,
     UPDATE_START_SPEED,
@@ -43,6 +44,7 @@ class Game:
         self.timers = {
             "vertical move": Timer(UPDATE_START_SPEED, True, self.move_down),
             "horizontal move": Timer(MOVE_WAIT_TIME),
+            "rotate": Timer(ROTATE_WAIT_TIME),
         }
         self.timers["vertical move"].activate()
 
@@ -86,6 +88,8 @@ class Game:
 
     def input(self):
         keys = pygame.key.get_pressed()
+
+        # checking horizontal movemnt
         if not self.timers["horizontal move"].active:
             if keys[pygame.K_LEFT]:
                 self.tetromino.move_horizontal(-1)
@@ -93,7 +97,11 @@ class Game:
             if keys[pygame.K_RIGHT]:
                 self.tetromino.move_horizontal(1)
                 self.timers["horizontal move"].activate()
-
+        # check for rotation
+        if not self.timers["rotate"].active:
+            if keys[pygame.K_UP]:
+                self.tetromino.rotate()
+                self.timers["rotate"].activate()
         # for event in pygame.event.get():
         #     if event.type == pygame.KEYDOWN or event.type == pygame.KEYUP:
         #         if event.key == pygame.K_LEFT:
@@ -138,6 +146,7 @@ class Game:
 
 class Tetromino:
     def __init__(self, shape, group, create_new_tetromino, field_data) -> None:
+        self.shape = shape
         self.block_positions = TETROMINOS[shape]["shape"]
         self.color = TETROMINOS[shape]["color"]
         self.blocks = [Block(group, pos, self.color) for pos in self.block_positions]
@@ -181,6 +190,29 @@ class Tetromino:
             for block in self.blocks:
                 block.pos.x += direction
 
+    # rotate
+    def rotate(self):
+        if self.shape != "O":
+            # 1. pivot point
+            pivot_pos = self.blocks[0].pos
+
+            # 2. new block positions
+            new_block_positions = [block.rotate(pivot_pos) for block in self.blocks]
+
+            # 3. check for collisions
+            for pos in new_block_positions:
+                # horizontal check
+                if pos.x < 0 or pos.x >= COLUMNS:
+                    return
+                # field check
+                if self.field_data[int(pos.y)][int(pos.x)]:
+                    return
+                # floor check
+                if pos.y > ROWS:
+                    return
+            for index, block in enumerate(self.blocks):
+                block.pos = new_block_positions[index]
+
 
 class Block(pygame.sprite.Sprite):
     def __init__(self, group, pos, color) -> None:
@@ -204,6 +236,13 @@ class Block(pygame.sprite.Sprite):
             return True
         if y >= 0 and field_data[y][int(self.pos.x)]:
             return True
+
+    def rotate(self, pivot_pos):
+        # distance = self.pos - pivot_pos
+        # rotated = distance.rotate(90)
+        # new_pos = pivot_pos + rotated
+        # return new_pos
+        return pivot_pos + (self.pos - pivot_pos).rotate(90)
 
     def update(self):
         self.rect.topleft = self.pos * CELL_SIZE
