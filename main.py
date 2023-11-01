@@ -3,7 +3,7 @@ from sys import exit
 from game import Game
 from preview import Preview
 from score import Score
-from settings import *
+from settings import GRAY, WINDOW_HEIGHT, WINDOW_WIDTH, pygame
 
 
 class Main:

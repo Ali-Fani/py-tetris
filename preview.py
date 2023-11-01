@@ -1,4 +1,11 @@
-from settings import *
+from settings import (
+    GAME_HEIGHT,
+    PADDING,
+    PREVIEW_HEIGHT_FRACTION,
+    SIDEBAR_WIDTH,
+    WINDOW_WIDTH,
+    pygame,
+)
 
 
 class Preview:

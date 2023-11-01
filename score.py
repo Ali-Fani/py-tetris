@@ -1,4 +1,12 @@
-from settings import *
+from settings import (
+    GAME_HEIGHT,
+    PADDING,
+    SCORE_HEIGHT_FRACTION,
+    SIDEBAR_WIDTH,
+    WINDOW_HEIGHT,
+    WINDOW_WIDTH,
+    pygame,
+)
 
 
 class Score:
