@@ -1,9 +1,10 @@
+from random import choice
 from sys import exit
 
 from game import Game
 from preview import Preview
 from score import Score
-from settings import GRAY, WINDOW_HEIGHT, WINDOW_WIDTH, pygame
+from settings import GRAY, TETROMINOS, WINDOW_HEIGHT, WINDOW_WIDTH, pygame
 
 
 class Main:
@@ -13,10 +14,18 @@ class Main:
         self.clock = pygame.time.Clock()
         pygame.display.set_caption("Tetris")
 
+        # shapes
+        self.next_shapes = [choice(list(TETROMINOS.keys())) for shape in range(3)]
+
         # components
-        self.game = Game()
+        self.game = Game(self.get_next_shape)
         self.score = Score()
         self.preview = Preview()
+
+    def get_next_shape(self):
+        next_shape = self.next_shapes.pop(0)
+        self.next_shapes.append(choice(list(TETROMINOS.keys())))
+        return next_shape
 
     def run(self):
         while True:
@@ -30,7 +39,7 @@ class Main:
             # compoenents
             self.game.run()
             self.score.run()
-            self.preview.run()
+            self.preview.run(self.next_shapes)
 
             # updating the game
             pygame.display.update()
